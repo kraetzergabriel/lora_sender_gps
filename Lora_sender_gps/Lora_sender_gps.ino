@@ -1,6 +1,7 @@
 #include "heltec.h"
 #include "images.h"
 #include <TinyGPS++.h>
+#include "Polygon.h"
 
 #define BAND    915E6  //you can set band here directly,e.g. 868E6,915E6
 
@@ -32,14 +33,10 @@ void setup(){
   logo();
 
   Serial2.begin(9600,SERIAL_8N1,S1RX,S1TX);
-  
   delay(1500);  
 }
 
-void loop()
-{
-  bool received = false;
-
+void loop(){
   while(Serial2.available())
     gps.encode(Serial2.read());
    
