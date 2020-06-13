@@ -9,13 +9,14 @@ unsigned int counter = 0;
 String rssi = "RSSI --";
 String packSize = "--";
 String packet ;
-String lat;// "-26.87900";
-String lng; // "-48.64850";
+double lat;// "-26.87900";
+double lng; // "-48.64850";
 
 const int S1RX = 22;
 const int S1TX = 23;
 
 TinyGPSPlus gps;
+Poly poly;
 
 void logo()
 {
@@ -40,18 +41,22 @@ void loop(){
   while(Serial2.available())
     gps.encode(Serial2.read());
    
-    lat = String(gps.location.lat());
-    lng = String(gps.location.lng());
+    lat = gps.location.lat();
+    lng = gps.location.lng();
 
-  printDisplay("");
-    
-  sendMessage();
 
-  onOffLed();
+  if (poly.IsPointInPolygon(lat, lng)) {
+    onOffLed();
+    printDisplay("AREA PROIBIDA");
+  } else {
+    printDisplay("");
+  }
+      
+  sendMessage();  
 }
 
 String getMessage(){
-  String result = "m3,"+ lat+ "/" + lng;
+  String result = "m3,"+ String(lat)+ "/" + String(lng);
 
   return result;
 }
@@ -61,18 +66,15 @@ void printDisplay(String message) {
   Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
   Heltec.display->setFont(ArialMT_Plain_10);
 
-  if (message = "") {
-    Heltec.display->drawString(0, 0, "Eviando pacote");
-    Heltec.display->drawString(90, 0, String(counter));
-    Heltec.display->drawString(0, 10, "ID: m3");
-    Heltec.display->drawString(0,20, "Lat");
-    Heltec.display->drawString(30,20, lat);
-    Heltec.display->drawString(0,30, "Long");
-    Heltec.display->drawString(30,30, lng);
-  } else {
-    Heltec.display->drawString(0,0, message);
-  }
-  
+  Heltec.display->drawString(0, 0, "Eviando pacote");
+  Heltec.display->drawString(90, 0, String(counter));
+  Heltec.display->drawString(0, 10, "ID: m3");
+  Heltec.display->drawString(0,20, "Lat");
+  Heltec.display->drawString(30,20, String(lat));
+  Heltec.display->drawString(0,30, "Long");
+  Heltec.display->drawString(30,30, String(lng));
+  Heltec.display->drawString(40,40, message);
+    
   Heltec.display->display();
 }
 
@@ -93,7 +95,7 @@ void sendMessage(){
 
 void onOffLed(){
   digitalWrite(LED, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(300);
+  delay(100);
   digitalWrite(LED, LOW); // turn the LED off by making the voltage LOW
   delay(100);
 }
